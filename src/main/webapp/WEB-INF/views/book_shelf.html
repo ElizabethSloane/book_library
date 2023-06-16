@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My book shelf</title>
+    <style>
+        #root_container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #books {
+            width: 50%;
+            border-collapse: collapse;
+        }
+
+        table {
+            margin: 25px;
+        }
+
+        th {
+            text-align: left;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<div id="root_container">
+    <form method="post" th:action="@{/books/save}" th:object="${book}">
+        <table>
+            <tr>
+                <td>
+                    <input type="text" placeholder="author" th:field="*{author}">
+                </td>
+                <td>
+                    <input type="text" placeholder="book_title" th:field="*{title}">
+                </td>
+                <td>
+                    <input type="text" placeholder="size (pages)" th:field="*{size}">
+                    <p th:if="${#fields.hasErrors()}">field value must be digit and less than 4 signs</p>
+                </td>
+                <td>
+                    <input type="submit" value="save">
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <form method="post" th:action="@{/books/remove}" th:object="${bookIdToRemove}">
+        <table>
+            <tr>
+                <td>
+                    <input type="text" placeholder="id number" th:field="*{id}">
+                </td>
+                <td>
+                    <input type="submit" value="remove">
+                </td>
+                <td th:if="${#fields.hasErrors()}">
+                    <p>Wrong id or not found</p>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <form method="post" th:action="@{/books/removeByRegex}">
+        <table>
+            <tr>
+                <td>
+                    <input type="text" placeholder="regex" th:name="queryRegex">
+                </td>
+                <td>
+                    <input type="submit" value="remove by regex">
+                </td>
+
+            </tr>
+        </table>
+    </form>
+
+
+    <form method="post" th:action="@{/books/uploadFile}" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td>
+                    <input type="file" name="file"/>
+                </td>
+                <td>
+                    <input type="submit" value="Upload">
+                </td>
+            </tr>
+        </table>
+    </form>
+
+
+    <table id="books">
+        <tr>
+            <th>id</th>
+            <th>author</th>
+            <th>title</th>
+            <th>size</th>
+        </tr>
+        <tr th:each="book : ${bookList}">
+            <td th:text="${book.id}"></td>
+            <td th:text="${book.author}"></td>
+            <td th:text="${book.title}"></td>
+            <td th:text="${book.size}"></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
