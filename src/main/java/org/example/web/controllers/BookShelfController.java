@@ -1,26 +1,25 @@
 package org.example.web.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.apache.log4j.Logger;
+import org.example.app.exceptions.NotFoundException;
 import org.example.app.services.BookService;
 import org.example.web.dto.Book;
 import org.example.web.dto.BookIdToRemove;
+import org.example.web.dto.BookRegexToRemove;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.List;
 
 @Controller
 @RequestMapping(value = "/books")
@@ -40,6 +39,7 @@ public class BookShelfController {
         logger.info(this.toString());
         model.addAttribute("book", new Book());
         model.addAttribute("bookIdToRemove", new BookIdToRemove());
+        model.addAttribute("regexToRemove", new BookRegexToRemove());
         model.addAttribute("bookList", bookService.getAllBooks());
         return "book_shelf";
     }
@@ -49,6 +49,7 @@ public class BookShelfController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("book", book);
             model.addAttribute("bookIdToRemove", new BookIdToRemove());
+            model.addAttribute("regexToRemove", new BookRegexToRemove());
             model.addAttribute("bookList", bookService.getAllBooks());
             return "book_shelf";
         }
@@ -72,8 +73,39 @@ public class BookShelfController {
         }
     }
 
+    @PostMapping("/removeByRegex")
+    public String removeBookByRegex(@Valid BookRegexToRemove regexToRemove, BindingResult bindingResult, Model model) throws Exception {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("book", new Book());
+            model.addAttribute("bookList", bookService.getAllBooks());
+            throw new NotFoundException("Book is not found");
+        }
+        for (Book book: bookService.getAllBooks()) {
+            if (book.getAuthor().equals(regexToRemove.getRegex()) ||
+                    book.getTitle().equals(regexToRemove.getRegex()) ||
+                    book.getSize().toString().equals(regexToRemove.getRegex())) {
+                bookService.removeBookById(book.getId());
+                break;
+            }
+        }
+
+
+//        List<Book> books = bookService.getAllBooks();
+//        for (Book book: books) {
+//            if (book.getAuthor().equals(regexToRemove) || book.getTitle().equals(regexToRemove) || book.getSize().toString().equals(regexToRemove)) {
+//                bookService.removeBookById(book.getId());
+//                return "redirect:/books/shelf";
+//            }
+//        }
+
+        return "redirect:/books/shelf";
+    }
+
     @PostMapping("/uploadFile")
-    public String uploadFile(@RequestParam("file")MultipartFile file) throws Exception {
+    public String uploadFile(@RequestParam("file") @NotEmpty MultipartFile file) throws Exception {
+        if (file.isEmpty()) {
+            throw new NotFoundException("No upload file");
+        }
         String name = file.getOriginalFilename();
         byte[] bytes = file.getBytes();
 
@@ -95,14 +127,11 @@ public class BookShelfController {
         return "redirect:/books/shelf";
     }
 
-    @PostMapping("/removeByRegex")
-    public String removeBookByRegex(@RequestParam(value = "queryRegex") String queryRegex) {
-        List<Book> books = bookService.getAllBooks();
-        for (Book book: books) {
-            if (book.getAuthor().equals(queryRegex) || book.getTitle().equals(queryRegex) || book.getSize().toString().equals(queryRegex)) {
-                bookService.removeBookById(book.getId());
-            }
-        }
-        return "redirect:/books/shelf";
+
+
+    @ExceptionHandler(NotFoundException.class)
+    public String handlerError(Model model, NotFoundException exception) {
+        model.addAttribute("errorMessage", exception.getMessage());
+        return "errors/Not_found";
     }
 }

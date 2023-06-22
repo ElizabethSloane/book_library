@@ -1,45 +1,28 @@
 package org.example.web.dto;
 
-import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
 public class Book {
+    @Getter
+    @Setter
     private Integer id;
+    @NotEmpty
+    @Pattern(regexp = "[a-zA-Z]*\s*[a-zA-Z]*\s*[a-zA-Z]*\s*[a-zA-Z]*")
+    @Getter
+    @Setter
     private String author;
+    @NotEmpty
+    @Pattern(regexp = "[a-zA-Z]*\s*[a-zA-Z]*\s*[a-zA-Z]*\s*[a-zA-Z]*")
+    @Getter
+    @Setter
     private String title;
     @Digits(integer = 4, fraction = 0)
+    @NotNull
+    @Getter
+    @Setter
     private Integer size;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Integer getSize() {
-        return size;
-    }
-
-    public void setSize(Integer size) {
-        this.size = size;
-    }
 
     @Override
     public String toString() {
